@@ -45,37 +45,43 @@ void ScoutingMuonTriggerAnalyzer::analyze(edm::Event const& iEvent, edm::EventSe
       auto& vts(vtriggerSelector_.at(i));
       bool result = false;
       if (vts){
-        //std::cout << "inside" << std::endl;
         if (triggerCache_.configurationUpdated()) vts->init(triggerCache_);
         result = (*vts)(triggerCache_);
       }
-      //std::cout << result << std::endl;
       if (result)
         passHLTDenominator = true;
     }
-   }
+  }
   //passHLTDenominator = true;
   if (sctMuons->size() > 0) {
     //pat::Muon leading_mu;
     //pat::Muon subleading_mu;
     Run3ScoutingMuon leading_mu;
     Run3ScoutingMuon subleading_mu;
-    leading_mu = (*sctMuons)[0]; 
-    subleading_mu = (*sctMuons)[0]; 
   
+    std::vector<Run3ScoutingMuon> sorted_mu;
     for (const auto& muon : *sctMuons) {
-      if (muon.pt() > leading_mu.pt()) {
-        subleading_mu = leading_mu;  
-        leading_mu = muon; 
-      } 
-      else if (muon.pt() > subleading_mu.pt()) {
-        subleading_mu = muon;
-      }
+      sorted_mu.push_back(muon);
     }
+    std::sort(std::begin(sorted_mu),std::end(sorted_mu), [&](Run3ScoutingMuon mu1, Run3ScoutingMuon mu2){return mu1.pt() > mu2.pt();});
+    leading_mu = sorted_mu.at(0);
+    if (sorted_mu.size() > 1)
+      subleading_mu = sorted_mu.at(1);
     
     l1GtUtils_->retrieveL1(iEvent, iSetup, algToken_);
+
     if (passHLTDenominator){
-      h_pt_l1_denominator->Fill(subleading_mu.pt());
+      h_pt1_l1_denominator->Fill(leading_mu.pt());
+      h_eta1_l1_denominator->Fill(leading_mu.eta());
+      h_phi1_l1_denominator->Fill(leading_mu.phi());
+      h_dxy1_l1_denominator->Fill(leading_mu.trk_dxy());
+      if (sorted_mu.size() > 1){
+        h_pt2_l1_denominator->Fill(subleading_mu.pt());
+        h_eta2_l1_denominator->Fill(subleading_mu.eta());
+        h_phi2_l1_denominator->Fill(subleading_mu.phi());
+        h_dxy2_l1_denominator->Fill(subleading_mu.trk_dxy());
+      }
+
       for (unsigned int i = 0; i < l1Seeds_.size(); i++){
         const auto& l1seed(l1Seeds_.at(i));
         bool l1htbit = 0;
@@ -84,53 +90,47 @@ void ScoutingMuonTriggerAnalyzer::analyze(edm::Event const& iEvent, edm::EventSe
         l1GtUtils_->getPrescaleByName(l1seed, prescale);
         l1Result[i] = l1htbit;
         if (l1Result[i] == 1) {
-          h_pt_l1_numerators[i]->Fill(subleading_mu.pt());
+          h_pt1_l1_numerators[i]->Fill(leading_mu.pt());
+          h_eta1_l1_numerators[i]->Fill(leading_mu.eta());
+          h_phi1_l1_numerators[i]->Fill(leading_mu.phi());
+          h_dxy1_l1_numerators[i]->Fill(leading_mu.trk_dxy());
+          if (sorted_mu.size() > 1){
+            h_pt2_l1_numerators[i]->Fill(subleading_mu.pt());
+            h_eta2_l1_numerators[i]->Fill(subleading_mu.eta());
+            h_phi2_l1_numerators[i]->Fill(subleading_mu.phi());
+            h_dxy2_l1_numerators[i]->Fill(subleading_mu.trk_dxy());
+          }
         }
       }
-    }
-  
-    //}
-  
-    //std::cout << "Leading mu pt = " << leading_mu.pt() << std::endl;
-    //std::cout << "Subeading mu pt = " << subleading_mu.pt() << std::endl;
+    }  
   }
-
 }
-
-
-/*
-
-void ScoutingMuonTriggerAnalyzer::fillHistograms_resonance(const kProbeKinematicMuonHistos histos, const Run3ScoutingMuon mu, const Run3ScoutingVertex vertex, const float inv_mass, const float lxy) const{
-  histos.hPt->Fill(mu.pt());
-  histos.hEta->Fill(mu.eta());
-  histos.hPhi->Fill(mu.phi());
-  histos.hInvMass->Fill(inv_mass);
-  histos.hNormChisq->Fill(mu.normalizedChi2());
-  histos.hTrk_dxy->Fill(mu.trk_dxy());
-  histos.hTrk_dz->Fill(mu.trk_dz());
-    histos.hLxy->Fill(lxy);
-  histos.hXError->Fill(vertex.xError());
-  histos.hYError->Fill(vertex.yError());
-  histos.hChi2->Fill(vertex.chi2());
-  histos.hZ->Fill(vertex.z());
-}
- */
-
 void ScoutingMuonTriggerAnalyzer::bookHistograms(DQMStore::IBooker& ibook, edm::Run const& run, edm::EventSetup const& iSetup) {
     ibook.setCurrentFolder(outputInternalPath_);
-    h_pt_l1_denominator = ibook.book1D("h_pt_denominator", ";Muon pt (GeV); Muons", 100, 0, 50.0);
+    h_pt1_l1_denominator = ibook.book1D("h_pt1_denominator", ";Leading muon pt (GeV); Muons", 100, 0, 50.0);
+    h_eta1_l1_denominator = ibook.book1D("h_eta1_denominator", ";Leading muon eta; Muons", 100, -5.0, 5.0);
+    h_phi1_l1_denominator = ibook.book1D("h_phi1_denominator", ";Leading muon phi; Muons", 100, -3.3, 3.3);
+    h_dxy1_l1_denominator = ibook.book1D("h_dxy1_denominator", ";Leading muon dxy; Muons", 100, 0, 5.0);
+
+    h_pt2_l1_denominator = ibook.book1D("h_pt2_denominator", ";Subleading muon pt (GeV); Muons", 100, 0, 50.0);
+    h_eta2_l1_denominator = ibook.book1D("h_eta2_denominator", ";Subleading muon eta; Muons", 100, -5.0, 5.0);
+    h_phi2_l1_denominator = ibook.book1D("h_phi2_denominator", ";Subleading muon phi; Muons", 100, -3.3, 3.3);
+    h_dxy2_l1_denominator = ibook.book1D("h_dxy2_denominator", ";Subleaing muon dxy; Muons", 100, 0, 5.0);
+
     for (unsigned int i = 0; i < l1Seeds_.size(); i++) {
       const auto& l1seed = l1Seeds_.at(i);
-      h_pt_l1_numerators.push_back(ibook.book1D(Form("h_pt_numerator_%s", l1seed.c_str()), ";Muon pt (GeV); Muons", 100, 0, 50.0));
+      h_pt1_l1_numerators.push_back(ibook.book1D(Form("h_pt1_numerator_%s", l1seed.c_str()), ";Leading muon pt (GeV); Muons", 100, 0, 50.0));
+      h_eta1_l1_numerators.push_back(ibook.book1D(Form("h_eta1_numerator_%s", l1seed.c_str()),";Leading muon eta; Muons", 100, -5.0, 5.0));
+      h_phi1_l1_numerators.push_back(ibook.book1D(Form("h_phi1_numerator_%s", l1seed.c_str()), ";Leading muon phi; Muons", 100, 3.3, -3.3));
+      h_dxy1_l1_numerators.push_back(ibook.book1D(Form("h_dxy1_numerator_%s", l1seed.c_str()), ";Leading muon dxy; Muons", 100, 0, 5.0));
+
+      h_pt2_l1_numerators.push_back(ibook.book1D(Form("h_pt2_numerator_%s", l1seed.c_str()), ";Subleading muon pt (GeV); Muons", 100, 0, 50.0));
+      h_eta2_l1_numerators.push_back(ibook.book1D(Form("h_eta2_numerator_%s", l1seed.c_str()),";Subleading muon eta; Muons", 100, -5.0, 5.0));
+      h_phi2_l1_numerators.push_back(ibook.book1D(Form("h_phi2_numerator_%s", l1seed.c_str()), ";Subleading muon phi; Muons", 100, 3.3, -3.3));
+      h_dxy2_l1_numerators.push_back(ibook.book1D(Form("h_dxy2_numerator_%s", l1seed.c_str()), ";Subleading muon dxy; Muons", 100, 0, 5.0));
+
     }
-    //bookHistograms_resonance(ibook, run, iSetup, histos.resonanceJ_numerator, "resonanceJ_numerator");
-    //bookHistograms_resonance(ibook, run, iSetup, histos.resonanceJ_denominator, "resonanceJ_denominator");
-    //bookHistograms_resonance(ibook, run, iSetup, histos.resonanceJ_vertex, "resonanceJ_vertex");
-    //bookHistograms_resonance(ibook, run, iSetup, histos.resonanceAll, "resonanceAll");
 }
-
-//}
-
 
 // ------------ method fills 'descriptions' with the allowed parameters for the
 // module  ------------
@@ -147,11 +147,6 @@ void ScoutingMuonTriggerAnalyzer::fillDescriptions(
   desc.add<edm::InputTag>("l1tExtBlkInputTag", edm::InputTag("gtStage2Digis"));
   desc.setUnknown();
   descriptions.addDefault(desc);
-  //desc.add<edm::InputTag>("l1Seeds", edm::InputTag("gtStage2Digis"));
-
-
-  //desc.add<edm::InputTag>("ScoutingMuonCollection", edm::InputTag("Run3ScoutingMuons"));
-  //desc.add<edm::InputTag>("ScoutingVtxCollection", edm::InputTag("hltScoutingMuonPackerNoVtx"));
   descriptions.add("ScoutingMuonTriggerAnalyzer", desc);
 }
 

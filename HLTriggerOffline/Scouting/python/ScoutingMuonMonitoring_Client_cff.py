@@ -3,8 +3,8 @@ from DQMServices.Core.DQMEDHarvester import DQMEDHarvester
 from HLTriggerOffline.Scouting.ScoutingMuonTriggerAnalyzer_cfi import *
 
 
-muonEfficiency = DQMEDHarvester("DQMGenericClient",
-    subDirs        = cms.untracked.vstring("/HLT/ScoutingOffline/Muons/"),
+muonEfficiencyNoVtx = DQMEDHarvester("DQMGenericClient",
+    subDirs        = cms.untracked.vstring("/HLT/ScoutingOffline/Muons/NoVtx"),
     #outputFileName = cms.untracked.string("output.root"),
     verbose        = cms.untracked.uint32(0), # Set to 2 for all messages                                                                                                                                          
     resolution     = cms.vstring(),
@@ -26,10 +26,21 @@ muonEfficiency = DQMEDHarvester("DQMGenericClient",
     ),
     #
 )
-    
-efficiencyList = ["effic_%s       'efficiency vs pt; Muon pt [GeV]; L1 efficiency' h_pt_numerator_%s h_pt_denominator"%(seed,seed) for seed in DoubleMuL1]
+#
+muonEfficiencyVtx = muonEfficiencyNoVtx.clone()
+muonEfficiencyVtx.subDirs = cms.untracked.vstring("/HLT/ScoutingOffline/Muons/Vtx")
+#
+allSeeds = SingleMuL1 + DoubleMuL1
+efficiencyList = ["effic_pt1_%s       '%s; Leading muon pt [GeV]; L1 efficiency' h_pt1_numerator_%s h_pt1_denominator"%(seed,seed, seed) for seed in allSeeds]+\
+["effic_eta1_%s       '%s; Leading muon eta; L1 efficiency' h_eta1_numerator_%s h_eta1_denominator"%(seed,seed, seed) for seed in allSeeds]+\
+["effic_phi1_%s       '%s; Leading muon phi; L1 efficiency' h_phi1_numerator_%s h_phi1_denominator"%(seed,seed, seed) for seed in allSeeds]+\
+["effic_dxy1_%s       '%s; Leading muon dxy; L1 efficiency' h_dxy1_numerator_%s h_dxy1_denominator"%(seed,seed, seed) for seed in allSeeds]+\
+["effic_pt2_%s       '%s; Subleading muon pt [GeV]; L1 efficiency' h_pt2_numerator_%s h_pt2_denominator"%(seed,seed, seed) for seed in allSeeds]+\
+["effic_eta2_%s       '%s; Subleading muon eta; L1 efficiency' h_eta2_numerator_%s h_eta2_denominator"%(seed,seed, seed) for seed in allSeeds]+\
+["effic_phi2_%s       '%s; Subleading muon phi; L1 efficiency' h_phi2_numerator_%s h_phi2_denominator"%(seed,seed, seed) for seed in allSeeds]+\
+["effic_dxy2_%s       '%s; Subleading muon dxy; L1 efficiency' h_dxy2_numerator_%s h_dxy2_denominator"%(seed,seed, seed) for seed in allSeeds]
 muonTriggerEfficiency = DQMEDHarvester("DQMGenericClient",
-    subDirs        = cms.untracked.vstring("/HLT/ScoutingOffline/Muons/"),
+    subDirs        = cms.untracked.vstring("/HLT/ScoutingOffline/Muons/L1Efficiency"),
     #outputFileName = cms.untracked.string("output.root"),
     verbose        = cms.untracked.uint32(0), # Set to 2 for all messages                                                                                                                                          
     resolution     = cms.vstring(),

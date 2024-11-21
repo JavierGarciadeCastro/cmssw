@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include <iostream>
 
 // user include files
 #include "DQMServices/Core/interface/DQMGlobalEDAnalyzer.h"
@@ -26,6 +27,11 @@ struct kProbeKinematicMuonHistos{
   dqm::reco::MonitorElement* hNormChisq;
   dqm::reco::MonitorElement* hTrk_dxy;
   dqm::reco::MonitorElement* hTrk_dz;
+  dqm::reco::MonitorElement* hnPixel;
+  dqm::reco::MonitorElement* hnTracker;
+  dqm::reco::MonitorElement* htrk_qoverp;
+
+
   dqm::reco::MonitorElement* hLxy;
   dqm::reco::MonitorElement* hXError;
   dqm::reco::MonitorElement* hYError;
@@ -33,20 +39,10 @@ struct kProbeKinematicMuonHistos{
   dqm::reco::MonitorElement* hZ;
 };
 
-//struct kProbeKinematicVertexHistos{
-//  dqm::reco::MonitorElement* hLxy;
-//  dqm::reco::MonitorElement* hXError;
-//  dqm::reco::MonitorElement* hYError;
-//  dqm::reco::MonitorElement* hChi2;
-//  dqm::reco::MonitorElement* hZ;
-//  //error en x, error en y, lxy, normalized chi2, z (vertice)
-//};
 
 struct kTagProbeMuonHistos {
   kProbeKinematicMuonHistos resonanceJ_numerator;
   kProbeKinematicMuonHistos resonanceJ_denominator;
-  //kProbeKinematicMuonHistos resonanceJ_vertex;
-  //kProbeKinematicMuonHistos resonanceAll;
 };
 
 class ScoutingMuonTagProbeAnalyzer: public DQMGlobalEDAnalyzer<kTagProbeMuonHistos> {
@@ -59,9 +55,7 @@ class ScoutingMuonTagProbeAnalyzer: public DQMGlobalEDAnalyzer<kTagProbeMuonHist
         void dqmAnalyze(const edm::Event & e, const edm::EventSetup & c, kTagProbeMuonHistos const&) const override;
         void bookHistograms(DQMStore::IBooker &, edm::Run const &, edm::EventSetup const &, kTagProbeMuonHistos &) const override;
         void bookHistograms_resonance(DQMStore::IBooker &, edm::Run const &, edm::EventSetup const &, kProbeKinematicMuonHistos &, const std::string &) const;
-        //void bookHistograms_vertex(DQMStore::IBooker &, edm::Run const &, edm::EventSetup const &, kProbeKinematicVertexHistos &, const std::string &) const;
         void fillHistograms_resonance(const kProbeKinematicMuonHistos histos, const Run3ScoutingMuon mu, const Run3ScoutingVertex vertex, const float inv_mass, const float lxy) const;
-        //void fillHistograms_vertex(const kProbeKinematicVertexHistos histos_vertex, const Run3ScoutingVertex vertex, const float lxy) const;
         bool scoutingMuonID(const Run3ScoutingMuon mu) const;
 
         // --------------------- member data  ----------------------
@@ -69,6 +63,7 @@ class ScoutingMuonTagProbeAnalyzer: public DQMGlobalEDAnalyzer<kTagProbeMuonHist
         edm::EDGetTokenT<std::vector<pat::Muon>> muonCollection_;
         edm::EDGetTokenT<std::vector<Run3ScoutingMuon>> scoutingMuonCollection_;
         edm::EDGetTokenT<std::vector<Run3ScoutingVertex>> scoutingVtxCollection_;
+        Bool_t runWithoutVtx_;
 
     };
 

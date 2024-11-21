@@ -73,11 +73,28 @@ class ScoutingMuonTriggerAnalyzer: public DQMEDAnalyzer {
         std::vector<std::string> l1Seeds_;
         TString l1Names[100] = {""};
         Bool_t l1Result[100] = {false};
-        //edm::EDGetTokenT<std::edm::TriggerResults> TriggerResultsCollection_;
+        
+        dqm::reco::MonitorElement* h_pt1_l1_denominator;
+        dqm::reco::MonitorElement* h_eta1_l1_denominator;
+        dqm::reco::MonitorElement* h_phi1_l1_denominator;
+        dqm::reco::MonitorElement* h_dxy1_l1_denominator;
 
-        dqm::reco::MonitorElement* h_pt_l1_denominator;
-        //std::vector<dqm::reco::MonitorElement*> h_pt_hlt_numerators;
-        std::vector<dqm::reco::MonitorElement*> h_pt_l1_numerators;
+        dqm::reco::MonitorElement* h_pt2_l1_denominator;
+        dqm::reco::MonitorElement* h_eta2_l1_denominator;
+        dqm::reco::MonitorElement* h_phi2_l1_denominator;
+        dqm::reco::MonitorElement* h_dxy2_l1_denominator;
+  
+        std::vector<dqm::reco::MonitorElement*> h_pt1_l1_numerators;
+        std::vector<dqm::reco::MonitorElement*> h_eta1_l1_numerators;
+        std::vector<dqm::reco::MonitorElement*> h_phi1_l1_numerators;
+        std::vector<dqm::reco::MonitorElement*> h_dxy1_l1_numerators;
+
+        std::vector<dqm::reco::MonitorElement*> h_pt2_l1_numerators;
+        std::vector<dqm::reco::MonitorElement*> h_eta2_l1_numerators;
+        std::vector<dqm::reco::MonitorElement*> h_phi2_l1_numerators;
+        std::vector<dqm::reco::MonitorElement*> h_dxy2_l1_numerators;
+
+
 
     };
 

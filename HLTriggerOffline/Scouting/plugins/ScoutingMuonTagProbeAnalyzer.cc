@@ -9,7 +9,8 @@ ScoutingMuonTagProbeAnalyzer::ScoutingMuonTagProbeAnalyzer(const edm::ParameterS
   : outputInternalPath_(iConfig.getParameter<std::string>("OutputInternalPath")),
     muonCollection_(consumes<std::vector<pat::Muon>>(iConfig.getParameter<edm::InputTag>("MuonCollection"))),
     scoutingMuonCollection_(consumes<std::vector<Run3ScoutingMuon>>(iConfig.getParameter<edm::InputTag>("ScoutingMuonCollection"))),
-    scoutingVtxCollection_(consumes<std::vector<Run3ScoutingVertex>>(iConfig.getParameter<edm::InputTag>("ScoutingVtxCollection"))){
+    scoutingVtxCollection_(consumes<std::vector<Run3ScoutingVertex>>(iConfig.getParameter<edm::InputTag>("ScoutingVtxCollection"))),
+    runWithoutVtx_(iConfig.getParameter<bool>("runWithoutVertex")){
 }
 
 ScoutingMuonTagProbeAnalyzer::~ScoutingMuonTagProbeAnalyzer(){
@@ -70,19 +71,23 @@ void ScoutingMuonTagProbeAnalyzer::dqmAnalyze(edm::Event const& iEvent,
       if((2.8 < invMass) && (invMass < 3.8)){ 
         std::cout << invMass << std::endl;
 
-	      if (vtxIndx_tag.size() == 0) continue;
-	      if (vtxIndx_probe.size() == 0) continue;
-
-        for (const auto& commonIdx : vtxIndx_tag) {
-          if (std::find(vtxIndx_probe.begin(), vtxIndx_probe.end(), commonIdx) != vtxIndx_probe.end()) {
-            const auto& vertex = (*sctVertex)[commonIdx];
-            float lxy = sqrt(vertex.x() * vertex.x() +  vertex.y() * vertex.y());
-            if (scoutingMuonID(sct_mu_second)){
-              fillHistograms_resonance(histos.resonanceJ_numerator,  sct_mu_second, vertex, invMass, lxy);
-            }
-            fillHistograms_resonance(histos.resonanceJ_denominator,  sct_mu_second, vertex, invMass, lxy);
-            //fillHistograms_resonance(histos.resonanceJ_vertex,  vertex, lxy);
-            //fillHistograms_resonance(histos.resonanceAll,sct_mu_second, invMass);
+        if (runWithoutVtx_) {
+          Run3ScoutingVertex vertex;
+          if (scoutingMuonID(sct_mu_second)){
+            fillHistograms_resonance(histos.resonanceJ_numerator,  sct_mu_second, vertex, invMass, -99.);
+          }
+          fillHistograms_resonance(histos.resonanceJ_denominator,  sct_mu_second, vertex, invMass, -99.);
+        } else {
+	        if (vtxIndx_tag.size() == 0 || vtxIndx_probe.size() == 0) continue;
+          for (const auto& commonIdx : vtxIndx_tag) {
+            if (std::find(vtxIndx_probe.begin(), vtxIndx_probe.end(), commonIdx) != vtxIndx_probe.end()) {
+              const auto& vertex = (*sctVertex)[commonIdx];
+              float lxy = sqrt(vertex.x() * vertex.x() +  vertex.y() * vertex.y());
+              if (scoutingMuonID(sct_mu_second)){
+                fillHistograms_resonance(histos.resonanceJ_numerator,  sct_mu_second, vertex, invMass, lxy);
+              }
+              fillHistograms_resonance(histos.resonanceJ_denominator,  sct_mu_second, vertex, invMass, lxy);
+            }  
           }
         }
       }
@@ -117,22 +122,19 @@ void ScoutingMuonTagProbeAnalyzer::fillHistograms_resonance(const kProbeKinemati
   histos.hNormChisq->Fill(mu.normalizedChi2());
   histos.hTrk_dxy->Fill(mu.trk_dxy());
   histos.hTrk_dz->Fill(mu.trk_dz());
+
+  histos.hnPixel->Fill(mu.nPixelLayersWithMeasurement());
+  histos.hnTracker->Fill(mu.nTrackerLayersWithMeasurement());
+  histos.htrk_qoverp->Fill(mu.trk_qoverp());
+
+  if (!runWithoutVtx_) {
     histos.hLxy->Fill(lxy);
-  histos.hXError->Fill(vertex.xError());
-  histos.hYError->Fill(vertex.yError());
-  histos.hChi2->Fill(vertex.chi2());
-  histos.hZ->Fill(vertex.z());
+    histos.hXError->Fill(vertex.xError());
+    histos.hYError->Fill(vertex.yError());
+    histos.hChi2->Fill(vertex.chi2());
+    histos.hZ->Fill(vertex.z());
+  }
 }
-
-
-//void ScoutingMuonTagProbeAnalyzer::fillHistograms_vertex(const kProbeKinematicVertexHistos histos_vertex, const Run3ScoutingVertex vertex, const float lxy) const{
-//  histos_vertex.hLxy->Fill(lxy);
-//  histos_vertex.hXError->Fill(vertex.xError());
-//  histos_vertex.hYError->Fill(vertex.yError());
-//  histos_vertex.hChi2->Fill(vertex.chi2());
-//  histos_vertex.hZ->Fill(vertex.z());
-//}
-
 
 void ScoutingMuonTagProbeAnalyzer::bookHistograms(DQMStore::IBooker& ibook,
                                                        edm::Run const& run,
@@ -152,34 +154,25 @@ void  ScoutingMuonTagProbeAnalyzer::bookHistograms_resonance(DQMStore::IBooker& 
                                                                  const std::string& name) const{
      ibook.setCurrentFolder(outputInternalPath_);
     
-     histos.hPt = ibook.book1D(name + "_Probe_sctMuon_Pt",name + "_Probe_sctMuon_Pt", 100, 0, 50.0);    
-     histos.hEta = ibook.book1D(name + "_Probe_sctMuon_Eta",name + "_Probe_sctMuon_Eta", 100, -5.0, 5.0);
-     histos.hPhi = ibook.book1D(name + "_Probe_sctMuon_Phi",name + "_Probe_sctMuon_Phi", 100, -3.3, 3.3);
-     histos.hInvMass = ibook.book1D(name + "_sctMuon_Invariant_Mass",name + "_sctMuon_Invariant_Mass", 800, 0, 5);
-     histos.hNormChisq = ibook.book1D(name + "_Probe_sctMuon_NormChisq",name + "_Probe_sctMuon_NormChisq", 100, 0, 5.0);
-     histos.hTrk_dxy = ibook.book1D(name + "_Probe_sctMuon_Trk_dxy",name + "_Probe_sctMuon_Trk_dxy", 100, 0, 5.0);
-     histos.hTrk_dz = ibook.book1D(name + "_Probe_sctMuon_Trk_dz",name + "_Probe_sctMuon_Trk_dz", 100, 0, 20.0);
-     histos.hLxy = ibook.book1D(name + "_Vertex_Lxy",name + "_Vertex_Lxy", 100, 0, 20);
-     histos.hXError = ibook.book1D(name + "_Vertex_Xerror",name + "_Vertex_Xerror", 100, 0, 2);
-     histos.hYError = ibook.book1D(name + "_Vertex_Yerror",name + "_Vertex_Yerror", 100, 0, 2);
-     histos.hChi2 = ibook.book1D(name + "_Vertex_chi2",name + "_Vertex_chi2", 100, 0, 15);
-     histos.hZ = ibook.book1D(name + "_Vertex_z",name + "_Vertex_z", 100, 0, 15);
-     //error en x, error en y, lxy, normalized chi2, z (vertice)
+     histos.hPt = ibook.book1D(name + "_Probe_sctMuon_Pt",name + "_Probe_sctMuon_Pt", 60, 0, 50.0);    
+     histos.hEta = ibook.book1D(name + "_Probe_sctMuon_Eta",name + "_Probe_sctMuon_Eta", 60, -5.0, 5.0);
+     histos.hPhi = ibook.book1D(name + "_Probe_sctMuon_Phi",name + "_Probe_sctMuon_Phi", 60, -3.3, 3.3);
+     histos.hInvMass = ibook.book1D(name + "_sctMuon_Invariant_Mass",name + "_sctMuon_Invariant_Mass", 100, 0, 5);
+     histos.hNormChisq = ibook.book1D(name + "_Probe_sctMuon_NormChisq",name + "_Probe_sctMuon_NormChisq", 60, 0, 5.0);
+     histos.hTrk_dxy = ibook.book1D(name + "_Probe_sctMuon_Trk_dxy",name + "_Probe_sctMuon_Trk_dxy", 60, 0, 5.0);
+     histos.hTrk_dz = ibook.book1D(name + "_Probe_sctMuon_Trk_dz",name + "_Probe_sctMuon_Trk_dz", 60, 0, 20.0);
+
+     histos.hnPixel = ibook.book1D(name + "_Probe_sctMuon_nPixel",name + "_Probe_sctMuon_nPixel", 6, 0, 6);
+     histos.hnTracker = ibook.book1D(name + "_Probe_sctMuon_nTracker",name + "_Probe_sctMuon_nTracker", 14, 0, 14);
+     histos.htrk_qoverp = ibook.book1D(name + "_Probe_sctMuon_trk_qoverp",name + "_Probe_sctMuon_trk_qoverp", 40, 0, 1);
+
+     histos.hLxy = ibook.book1D(name + "_Vertex_Lxy",name + "_Vertex_Lxy", 60, 0, 20);
+     histos.hXError = ibook.book1D(name + "_Vertex_Xerror",name + "_Vertex_Xerror", 60, 0, 2);
+     histos.hYError = ibook.book1D(name + "_Vertex_Yerror",name + "_Vertex_Yerror", 60, 0, 2);
+     histos.hChi2 = ibook.book1D(name + "_Vertex_chi2",name + "_Vertex_chi2", 60, 0, 15);
+     histos.hZ = ibook.book1D(name + "_Vertex_z",name + "_Vertex_z", 60, 0, 15);
 }
 
-//void  ScoutingMuonTagProbeAnalyzer::bookHistograms_vertex(DQMStore::IBooker& ibook,
-//                                                                 edm::Run const& run,
-//                                                                 edm::EventSetup const& iSetup,
-//                                                                 kProbeKinematicVertexHistos& histos_vertex,
-//                                                                 const std::string& name) const{
-//     ibook.setCurrentFolder(outputInternalPath_);
-//    
-//     histos_vertex.hLxy = ibook.book1D(name + "_Vertex_Lxy",name + "_Vertex_Lxy", 100, 0, 70);
-//     histos_vertex.hXError = ibook.book1D(name + "_Vertex_Xerror",name + "_Vertex_Xerror", 100, 0, 70);
-//     histos_vertex.hYError = ibook.book1D(name + "_Vertex_Yerror",name + "_Vertex_Yerror", 100, 0, 70);
-//     histos_vertex.hChi2 = ibook.book1D(name + "_Vertex_chi2",name + "_Vertex_chi2", 100, 0, 70);
-//     histos_vertex.hZ = ibook.book1D(name + "_Vertex_z",name + "_Vertex_z", 100, 0, 70);
-//}
 
 
 // ------------ method fills 'descriptions' with the allowed parameters for the
@@ -197,6 +190,7 @@ void ScoutingMuonTagProbeAnalyzer::fillDescriptions(
                           edm::InputTag("Run3ScoutingMuons"));
   desc.add<edm::InputTag>("ScoutingVtxCollection",
                           edm::InputTag("hltScoutingMuonPackerNoVtx"));
+  desc.add<bool>("runWithoutVertex", true);
   descriptions.add("ScoutingMuonTagProbeAnalyzer", desc);
 }
 

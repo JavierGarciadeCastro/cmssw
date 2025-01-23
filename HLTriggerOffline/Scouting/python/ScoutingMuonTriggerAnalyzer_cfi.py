@@ -6,7 +6,6 @@ SingleMuL1 = ["L1_SingleMu11_SQ14_BMTF"]
 #zeroBias = "DST_ZeroBias_v*"
 
 ScoutingMuonTriggerAnalysis = DQMEDAnalyzer('ScoutingMuonTriggerAnalyzer',
-
     OutputInternalPath = cms.string('/HLT/ScoutingOffline/Muons/L1Efficiency'),
     MuonCollection = cms.InputTag('slimmedMuons'),
     ScoutingMuonCollection = cms.InputTag('hltScoutingMuonPackerVtx'),
@@ -23,7 +22,6 @@ ScoutingMuonTriggerAnalysis = DQMEDAnalyzer('ScoutingMuonTriggerAnalyzer',
     l1tExtBlkInputTag = cms.InputTag("gtStage2Digis"),
     ReadPrescalesFromFile = cms.bool(False),
     l1Seeds = cms.vstring(SingleMuL1+DoubleMuL1)
-
     #ScoutingTriggerCollection = cms.InputTag('TriggerResults'),
 )
 

@@ -1,11 +1,8 @@
 #ifndef DQMOffline_Scouting_ScoutingMuonTagProbeAnalyzer_h
 #define DQMOffline_Scouting_ScoutingMuonTagProbeAnalyzer_h
-
 #include <string>
 #include <vector>
 #include <iostream>
-
-// user include files
 #include "DQMServices/Core/interface/DQMGlobalEDAnalyzer.h"
 #include "DataFormats/PatCandidates/interface/Muon.h"
 #include "DataFormats/Scouting/interface/Run3ScoutingMuon.h"
@@ -30,15 +27,66 @@ struct kProbeKinematicMuonHistos{
   dqm::reco::MonitorElement* hnPixel;
   dqm::reco::MonitorElement* hnTracker;
   dqm::reco::MonitorElement* htrk_qoverp;
-
-
+  dqm::reco::MonitorElement* htype;
+  dqm::reco::MonitorElement* hcharge;
+  dqm::reco::MonitorElement* hecalIso;
+  dqm::reco::MonitorElement* hhcalIso;
+  dqm::reco::MonitorElement* htrackIso;
+  dqm::reco::MonitorElement* hnValidStandAloneMuonHits;
+  dqm::reco::MonitorElement* hnStandAloneMuonMatchedStations;
+  dqm::reco::MonitorElement* hnValidRecoMuonHits;
+  dqm::reco::MonitorElement* hnRecoMuonChambers;
+  dqm::reco::MonitorElement* hnRecoMuonChambersCSCorDT;
+  dqm::reco::MonitorElement* hnRecoMuonMatches;
+  dqm::reco::MonitorElement* hnRecoMuonMatchedStations;
+  dqm::reco::MonitorElement* hnRecoMuonExpectedMatchedStations;
+  dqm::reco::MonitorElement* hnValidPixelHits;
+  dqm::reco::MonitorElement* hnValidStripHits;
+  dqm::reco::MonitorElement* hnPixelLayersWithMeasurement;
+  dqm::reco::MonitorElement* hnTrackerLayersWithMeasurement;
+  dqm::reco::MonitorElement* htrk_chi2;
+  dqm::reco::MonitorElement* htrk_ndof;
+  dqm::reco::MonitorElement* htrk_lambda;
+  dqm::reco::MonitorElement* htrk_pt;
+  dqm::reco::MonitorElement* htrk_eta;
+  dqm::reco::MonitorElement* htrk_dxyError;
+  dqm::reco::MonitorElement* htrk_dzError;
+  dqm::reco::MonitorElement* htrk_qoverpError;
+  dqm::reco::MonitorElement* htrk_lambdaError;
+  dqm::reco::MonitorElement* htrk_phiError;
+  dqm::reco::MonitorElement* htrk_dsz;
+  dqm::reco::MonitorElement* htrk_dszError;
+  dqm::reco::MonitorElement* htrk_vx;
+  dqm::reco::MonitorElement* htrk_vy;
+  dqm::reco::MonitorElement* htrk_vz;
   dqm::reco::MonitorElement* hLxy;
   dqm::reco::MonitorElement* hXError;
   dqm::reco::MonitorElement* hYError;
   dqm::reco::MonitorElement* hChi2;
   dqm::reco::MonitorElement* hZ;
+  dqm::reco::MonitorElement* hx;
+  dqm::reco::MonitorElement* hy;
+  dqm::reco::MonitorElement* hZerror;
+  dqm::reco::MonitorElement* htracksSize;
+  //dqm::reco::MonitorElement* hrecoMuonStationMask;
+  //dqm::reco::MonitorElement* hnRecoMuonMatchedRPCLayers;
+  //dqm::reco::MonitorElement* hrecoMuonRPClayerMask;
+  //dqm::reco::MonitorElement* htrk_phi;
+  //dqm::reco::MonitorElement* hndof;
+  //dqm::reco::MonitorElement* htrk_qoverp_lambda_cov;
+  //dqm::reco::MonitorElement* htrk_qoverp_phi_cov;
+  //dqm::reco::MonitorElement* htrk_qoverp_dxy_cov;
+  //dqm::reco::MonitorElement* htrk_qoverp_dsz_cov;
+  //dqm::reco::MonitorElement* htrk_lambda_phi_cov;
+  //dqm::reco::MonitorElement* htrk_lambda_dxy_cov;
+  //dqm::reco::MonitorElement* htrk_lambda_dsz_cov;
+  //dqm::reco::MonitorElement* htrk_phi_dxy_cov;
+  //dqm::reco::MonitorElement* htrk_phi_dsz_cov;
+  //dqm::reco::MonitorElement* htrk_dxy_dsz_cov;
+  //dqm::reco::MonitorElement* hxyCov;
+  //dqm::reco::MonitorElement* hxzCov;
+  //dqm::reco::MonitorElement* hyzCov;
 };
-
 
 struct kTagProbeMuonHistos {
   kProbeKinematicMuonHistos resonanceJ_numerator;
@@ -64,7 +112,5 @@ class ScoutingMuonTagProbeAnalyzer: public DQMGlobalEDAnalyzer<kTagProbeMuonHist
         edm::EDGetTokenT<std::vector<Run3ScoutingMuon>> scoutingMuonCollection_;
         edm::EDGetTokenT<std::vector<Run3ScoutingVertex>> scoutingVtxCollection_;
         Bool_t runWithoutVtx_;
-
     };
-
 #endif

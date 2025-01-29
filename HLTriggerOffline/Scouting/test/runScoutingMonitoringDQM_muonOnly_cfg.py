@@ -79,7 +79,7 @@ process.load("DQMServices.Components.DQMEnvironment_cfi")
 process.load("DQMServices.FileIO.DQMFileSaverOnline_cfi")
 process.dqmSaver.tag = '%i'%(options.minFile)
 
-process.options = cms.untracked.PSet(numberOfThreads = cms.untracked.uint32(1))#Set this to the number of events you want to run, 1 = All events, 100 = 100 events
+process.options = cms.untracked.PSet(numberOfThreads = cms.untracked.uint32(1))
 
 #Sequence to be ran
 process.allPath = cms.Path(process.scoutingMonitoringTagProbeMuonNoVtx

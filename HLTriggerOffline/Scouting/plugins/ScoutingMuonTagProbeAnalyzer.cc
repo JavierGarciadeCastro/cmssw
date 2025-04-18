@@ -100,6 +100,31 @@ void ScoutingMuonTagProbeAnalyzer::dqmAnalyze(edm::Event const& iEvent,
           }
         }
       }
+      else if ((75.0 < invMass && invMass < 107.0)) {
+        //Boolean added because hltScoutingMuonPackerVtx collection doesn't have vertices for the moment
+        if (runWithoutVtx_) {
+          Run3ScoutingVertex vertex;
+          //If probe passes tag ID, add it to the numerator
+          if (scoutingMuonID(sct_mu_second)) {
+            fillHistograms_resonance(histos.resonanceZ_numerator, sct_mu_second, vertex, invMass, -99.);
+          }
+          //Add all events to the denominator
+          fillHistograms_resonance(histos.resonanceZ_denominator, sct_mu_second, vertex, invMass, -99.);
+        } else {
+          if (vtxIndx_tag.empty() || vtxIndx_probe.empty())
+            continue;
+          for (const auto& commonIdx : vtxIndx_tag) {
+            if (std::find(vtxIndx_probe.begin(), vtxIndx_probe.end(), commonIdx) != vtxIndx_probe.end()) {
+              const auto& vertex = (*sctVertex)[commonIdx];
+              float lxy = sqrt(vertex.x() * vertex.x() + vertex.y() * vertex.y());
+              if (scoutingMuonID(sct_mu_second)) {
+                fillHistograms_resonance(histos.resonanceZ_numerator, sct_mu_second, vertex, invMass, lxy);
+              }
+              fillHistograms_resonance(histos.resonanceZ_denominator, sct_mu_second, vertex, invMass, lxy);
+            }
+          }
+        }
+      }
     }
     foundTag = true;
   }
@@ -158,7 +183,6 @@ void ScoutingMuonTagProbeAnalyzer::fillHistograms_resonance(const kProbeKinemati
   histos.htrk_qoverpError->Fill(mu.trk_qoverpError());
   histos.htrk_lambdaError->Fill(mu.trk_lambdaError());
   histos.htrk_phiError->Fill(mu.trk_phiError());
-  histos.htrk_dsz->Fill(mu.trk_dsz());
   histos.htrk_dszError->Fill(mu.trk_dszError());
   histos.htrk_dsz->Fill(mu.trk_dsz());
   histos.htrk_vx->Fill(mu.trk_vx());
@@ -189,6 +213,8 @@ void ScoutingMuonTagProbeAnalyzer::bookHistograms(DQMStore::IBooker& ibook,
   ibook.setCurrentFolder(outputInternalPath_);
   bookHistograms_resonance(ibook, run, iSetup, histos.resonanceJ_numerator, "resonanceJ_numerator");
   bookHistograms_resonance(ibook, run, iSetup, histos.resonanceJ_denominator, "resonanceJ_denominator");
+  bookHistograms_resonance(ibook, run, iSetup, histos.resonanceZ_numerator, "resonanceZ_numerator");
+  bookHistograms_resonance(ibook, run, iSetup, histos.resonanceZ_denominator, "resonanceZ_denominator");
 }
 
 //Set axes labels and range
@@ -203,7 +229,7 @@ void ScoutingMuonTagProbeAnalyzer::bookHistograms_resonance(DQMStore::IBooker& i
   histos.hEta = ibook.book1D(name + "_Probe_sctMuon_Eta", name + "_Probe_sctMuon_Eta; Muon eta; Muons", 60, -5.0, 5.0);
   histos.hPhi = ibook.book1D(name + "_Probe_sctMuon_Phi", name + "_Probe_sctMuon_Phi; Muon phi; Muons", 60, -3.3, 3.3);
   histos.hInvMass = ibook.book1D(
-      name + "_sctMuon_Invariant_Mass", name + "_sctMuon_Invariant_Mass;Muon Inv mass (GeV); Muons", 100, 0, 5);
+      name + "_sctMuon_Invariant_Mass", name + "_sctMuon_Invariant_Mass;Muon Inv mass (GeV); Muons", 100, 0, 100);
   histos.hNormChisq = ibook.book1D(
       name + "_Probe_sctMuon_NormChisq", name + "_Probe_sctMuon_NormChisq; Muon normChi2; Muons", 60, 0, 5.0);
   histos.hTrk_dxy =

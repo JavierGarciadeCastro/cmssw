@@ -31,6 +31,7 @@ Author: Javier Garcia de Castro, email:javigdc@bu.edu
 #include "HLTrigger/HLTcore/interface/TriggerExpressionData.h"
 #include "HLTrigger/HLTcore/interface/TriggerExpressionEvaluator.h"
 #include "HLTrigger/HLTcore/interface/TriggerExpressionParser.h"
+#include "CommonTools/Utils/interface/StringCutObjectSelector.h"
 
 //Classes to be declared
 class ScoutingMuonTriggerAnalyzer : public DQMEDAnalyzer {
@@ -53,6 +54,7 @@ private:
   std::vector<std::string> l1Seeds_;
   TString l1Names[100] = {""};
   Bool_t l1Result[100] = {false};
+  StringCutObjectSelector<Run3ScoutingMuon, false> muonsCut_;
 
   //Histogram declaration
   //DENOMINATORS:

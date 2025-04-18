@@ -80,6 +80,8 @@ struct kProbeKinematicMuonHistos {
 struct kTagProbeMuonHistos {
   kProbeKinematicMuonHistos resonanceJ_numerator;
   kProbeKinematicMuonHistos resonanceJ_denominator;
+  kProbeKinematicMuonHistos resonanceZ_numerator;
+  kProbeKinematicMuonHistos resonanceZ_denominator;
 };
 
 class ScoutingMuonTagProbeAnalyzer : public DQMGlobalEDAnalyzer<kTagProbeMuonHistos> {

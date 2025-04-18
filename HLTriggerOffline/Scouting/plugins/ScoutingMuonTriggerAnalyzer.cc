@@ -19,7 +19,9 @@ Author: Javier Garcia de Castro, email:javigdc@bu.edu
 ScoutingMuonTriggerAnalyzer::ScoutingMuonTriggerAnalyzer(const edm::ParameterSet& iConfig)
     : outputInternalPath_(iConfig.getParameter<std::string>("OutputInternalPath")),
       triggerCache_(triggerExpression::Data(iConfig.getParameterSet("triggerConfiguration"), consumesCollector())),
-      vtriggerSelection_(iConfig.getParameter<vector<string>>("triggerSelection")) {
+      vtriggerSelection_(iConfig.getParameter<vector<string>>("triggerSelection")),
+      muonsCut_(iConfig.getParameter<std::string>("muonSelection"))
+      {
   scoutingMuonCollection_ =
       consumes<std::vector<Run3ScoutingMuon>>(iConfig.getParameter<edm::InputTag>("ScoutingMuonCollection"));
   vtriggerSelector_.reserve(vtriggerSelection_.size());
@@ -43,6 +45,13 @@ void ScoutingMuonTriggerAnalyzer::analyze(edm::Event const& iEvent, edm::EventSe
   if (sctMuons.failedToGet()) {
     edm::LogWarning("ScoutingMonitoring") << "Run3ScoutingMuon collection not found.";
     return;
+  }
+  //Apply cuts specified in config file
+  for (const auto& muon : *sctMuons) {
+    if (!muonsCut_(muon)) {
+      edm::LogWarning("ScoutingMonitoring") << "No muons passed the selection cut.";
+      return;
+    }
   }
 
   //Check whether events pass any of the HLTriggers to add to the denominator
@@ -70,6 +79,7 @@ void ScoutingMuonTriggerAnalyzer::analyze(edm::Event const& iEvent, edm::EventSe
     for (const auto& muon : *sctMuons) {
       sorted_mu.push_back(muon);
     }
+
     std::sort(std::begin(sorted_mu), std::end(sorted_mu), [&](Run3ScoutingMuon mu1, Run3ScoutingMuon mu2) {
       return mu1.pt() > mu2.pt();
     });
@@ -82,7 +92,7 @@ void ScoutingMuonTriggerAnalyzer::analyze(edm::Event const& iEvent, edm::EventSe
     math::PtEtaPhiMLorentzVector mu1(leading_mu.pt(), leading_mu.eta(), leading_mu.phi(), leading_mu.m());
     math::PtEtaPhiMLorentzVector mu2(subleading_mu.pt(), subleading_mu.eta(), subleading_mu.phi(), subleading_mu.m());
     float invMass = (mu1 + mu2).mass();
-    //If event passed and of the HLTs, add to denominator
+    //If event passed any of the HLTs, add to denominator
     if (passHLTDenominator) {
       h_invMass_denominator->Fill(invMass);
       h_pt1_l1_denominator->Fill(leading_mu.pt());
@@ -120,7 +130,6 @@ void ScoutingMuonTriggerAnalyzer::analyze(edm::Event const& iEvent, edm::EventSe
     }
   }
 }
-
 //Histogram axes labels, bin number and range
 void ScoutingMuonTriggerAnalyzer::bookHistograms(DQMStore::IBooker& ibook,
                                                  edm::Run const& run,

@@ -62,11 +62,11 @@ process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 #Read files with the events
 if options.inputDataset!='':
     listOfFiles = (os.popen("""dasgoclient -query="file dataset=%s instance=prod/global run=%i" """%(options.inputDataset, options.runNumber)).read()).split('\n')
+    print(listOfFiles)
 process.source = cms.Source("PoolSource",
     fileNames = cms.untracked.vstring( listOfFiles[:-1] ),
     lumisToProcess = cms.untracked.VLuminosityBlockRange('%i:1-%i:max'%(options.runNumber, options.runNumber))
 )
-
 from PhysicsTools.SelectorUtils.tools.vid_id_tools import *
 #Load files
 process.load("EventFilter.L1TRawToDigi.gtStage2Digis_cfi")
@@ -85,8 +85,10 @@ process.options = cms.untracked.PSet(numberOfThreads = cms.untracked.uint32(1))
 process.allPath = cms.Path(process.scoutingMonitoringTagProbeMuonNoVtx
                            * process.scoutingMonitoringTagProbeMuonVtx
                            * process.muonEfficiencyNoVtx
-                           * process.muonEfficiencyVtx 
-                           * process.scoutingMonitoringTriggerMuon
-                           * process.muonTriggerEfficiency)
+                           * process.muonEfficiencyVtx
+                           * process.scoutingMonitoringTriggerMuon_DoubleMu
+                           * process.scoutingMonitoringTriggerMuon_SingleMu
+                           * process.muonTriggerEfficiency_DoubleMu
+                           * process.muonTriggerEfficiency_SingleMu)
 #Save the files and close root file
 process.p = cms.EndPath(process.dqmSaver)
